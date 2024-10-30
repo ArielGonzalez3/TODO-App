@@ -35,7 +35,10 @@ const addOrUpdateTask = () => {
   // Si la compracion de -1 se agrega al array taskData el objeto taskObj
   if(dataArrIndex === -1){
     taskData.unshift(taskObj)
+  } else {
+    taskData[dataArrIndex] = taskObj;
   }
+
 
   updateTaskContainer();
   reset();
@@ -44,6 +47,9 @@ const addOrUpdateTask = () => {
 
 const updateTaskContainer = () => {
 
+  // Borrar el contenido existente de taskContainer antes de agregar una nueva tarea
+  tasksContainer.innerHTML = '';
+
   // mostrar la tarea en la pagina recorriendo un bucle forEach()
   taskData.forEach(({id, title, date, description})=>{
     tasksContainer.innerHTML += `
@@ -51,12 +57,37 @@ const updateTaskContainer = () => {
         <p><strong>Title:</strong> ${title}</p>
         <p><strong>Date:</strong> ${date}</p>
         <p><strong>Description:</strong> ${description}</p>
-        <button type='button' class='btn'>Edit</button>
-        <button type='button' class='btn'>Delete</button>
+        <button type='button' onclick='editTask(this)' class='btn'>Edit</button>
+        <button type='button' onclick='deleteTask(this)' class='btn'>Delete</button>
       </div>
     `;
   });
   
+}
+
+// eliminar Task
+const deleteTask = (buttonEl) => {
+  const dataArrIndex = taskData.findIndex((item) => item.id === buttonEl.parentElement.id)
+
+  buttonEl.parentElement.remove();
+  taskData.splice(dataArrIndex, 1);
+
+};
+
+// Editar task
+const editTask = (buttonEl) => {
+  const dataArrIndex = taskData.findIndex((item) => item.id === buttonEl.parentElement.id)
+
+  currentTask = taskData[dataArrIndex];
+
+  titleInput.value = currentTask.title;
+  dateInput.value = currentTask.date;
+  descriptionInput.value = currentTask.description;
+
+  addOrUpdateTaskBtn.innerText = 'Update Task';
+
+  taskForm.classList.toggle('hidden');
+
 }
 
 // Funcion de reset para borrar los campos
@@ -77,7 +108,9 @@ closeTaskFormBtn.addEventListener("click", () => {
 
   const formInputsContainValues = titleInput.value || dateInput.value || descriptionInput.value;
 
-  if (formInputsContainValues) {
+  const formInputValuesUpdated = titleInput.value !== currentTask.title || dateInput.value !== currentTask.date || descriptionInput.value !== currentTask.description;
+
+  if (formInputsContainValues && formInputValuesUpdated) {
     confirmCloseDialog.showModal();
   } else {
     reset();
@@ -103,6 +136,10 @@ taskForm.addEventListener('submit', (e)=>{
   
 
   // taskForm.classList.toggle("hidden");
-  reset();
+  // reset(); se cancela este reset por refactoring y se modifica por la sig funcion
+  addOrUpdateTask()
 });
 
+
+// Configurar Local Storage
+localStorage.setItem('data', myTaskArr);
