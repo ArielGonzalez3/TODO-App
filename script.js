@@ -13,21 +13,32 @@ const descriptionInput = document.getElementById("description-input");
 
 // Matriz almacenará tareas con datos asociados
 // Esto permitirá realizar seguimiento, mostrarlas en página y guardarlas en localStorage
-const taskData = [];
+const taskData = JSON.parse(localStorage.getItem('data')) || []; // para recuperar los datos del almacenamiento local o del array vacio
 // Esta variable se utilizará para realizar un seguimiento del estado al editar y descartar tareas.
 let currentTask = {};
 
+// Eliminar caracteres especiales en titulo o cuerpo de msj
+const removeSpecialChars = (str) => {
+  return str.trim().replace(/[^A-Za-z0-9\-\s]/g, '')
+}
+
 const addOrUpdateTask = () => {
+
+  // para verificar que el titulo no contiene un string vacio
+  if (!titleInput.value.trim()) {
+    alert("Please provide a title");
+    return;
+  }
 
   // Se corrobora con metodo findIndex() si la tarea a agregar existe o no
   const dataArrIndex = taskData.findIndex((item) => item.id === currentTask.id);
 
   // cuando se crea una task se guarda en un objeto
   const taskObj = {
-    id: `${titleInput.value.toLowerCase().split(' ').join('-')}-${Date.now()}`,
-    title: titleInput.value, 
+    id: `${removeSpecialChars(titleInput.value).toLowerCase().split(' ').join('-')}-${Date.now()}`,
+    title: removeSpecialChars(titleInput.value), 
     date: dateInput.value,
-    description: descriptionInput.value
+    description: removeSpecialChars(descriptionInput.value)
   }
 
   // console.log(taskObj);
@@ -39,6 +50,8 @@ const addOrUpdateTask = () => {
     taskData[dataArrIndex] = taskObj;
   }
 
+  // configuracion de local storage para guardar, actualizar o borrar las task
+  localStorage.setItem('data', JSON.stringify(taskData));
 
   updateTaskContainer();
   reset();
@@ -72,6 +85,10 @@ const deleteTask = (buttonEl) => {
   buttonEl.parentElement.remove();
   taskData.splice(dataArrIndex, 1);
 
+  
+  // Dado que se usa splice() para eliminar la tarea de taskData, solo queda guardar taskData en el almacenamiento local nuevamente.
+  localStorage.setItem('data', JSON.stringify(taskData));
+
 };
 
 // Editar task
@@ -92,11 +109,19 @@ const editTask = (buttonEl) => {
 
 // Funcion de reset para borrar los campos
 const reset = () => {
+
+  addOrUpdateTaskBtn.innerText = 'Add Task';
+
   titleInput.value = '';
   dateInput.value = '' ;
   descriptionInput.value = '';
   taskForm.classList.toggle("hidden");
   currentTask = {};
+}
+
+// Verifique si hay tarea dentro de taskData y llamar a updateTaskContainer()
+if(taskData.length) {
+  updateTaskContainer();
 }
 
 // Se crea un evento en openTaskFormBtn con el metodo para agregar o quitar class toggle
@@ -142,4 +167,24 @@ taskForm.addEventListener('submit', (e)=>{
 
 
 // Configurar Local Storage
-localStorage.setItem('data', myTaskArr);
+
+// const myTaskArr = [
+//   { task: "Walk the Dog", date: "22-04-2022" },
+//   { task: "Read some books", date: "02-11-2023" },
+//   { task: "Watch football", date: "10-08-2021" },
+// ];
+
+// localStorage.setItem('data', JSON.stringify(myTaskArr));
+
+// localStorage.removeItem('data');
+
+// localStorage.clear();
+
+// const getTaskArr = localStorage.getItem("data");
+
+// console.log(getTaskArr);
+
+// const getTaskArrObj = JSON.parse(localStorage.getItem("data"));
+
+// console.log(getTaskArrObj);
+
